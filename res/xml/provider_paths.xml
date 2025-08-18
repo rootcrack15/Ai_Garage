@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Dahili depolamadaki history_images klasörünü paylaşmak için -->
+    <files-path
+        name="history_images"
+        path="history_images/" />
+
+    <!-- Eğer MediaStore'dan alınan URI'leri de FileProvider ile yönetmek isterseniz
+         (genellikle doğrudan content URI'leri kullanılır, bu kısım zorunlu olmayabilir)-->
+    <external-path
+        name="external_pictures"
+        path="Pictures/" />
+
+    <!-- Cache klasörünü paylaşmak gerekirse (örneğin kamera geçici dosyaları için) -->
+    <cache-path
+        name="cache_images"
+        path="." />
+
+    <external-files-path name="history_images" path="Pictures/history_images/" />
+</paths>

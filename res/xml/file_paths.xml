@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<paths>
+<external-files-path name="captured_images" path="captured_images/" />
+<external-files-path name="my_images" path="Pictures/AIGarage/" />
+<external-cache-path name="my_cached_images" path="." />
+<files-path name="captured_images" path="captured_images/" />
+<external-files-path name="my_camera_images" path="camera/" />
+<external-files-path name="ai_garage_images" path="Pictures/AI_Garage_Images/" />
+<cache-path name="cached_images" path="." />
+</paths>
