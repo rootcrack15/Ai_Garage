@@ -1,156 +1,306 @@
-package com.rootcrack.aigarage.segmentation
+package com.rootcrack.aigarage.screens
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Color
+import android.graphics.BitmapFactory
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.net.Uri
 import android.util.Log
+import androidx.annotation.ColorInt
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.core.graphics.scale
+import androidx.core.net.toUri
+import androidx.navigation.NavController
+import com.rootcrack.aigarage.navigation.EditTypeValues
+import com.rootcrack.aigarage.navigation.NavArgs
+import com.rootcrack.aigarage.navigation.Screen
+import com.rootcrack.aigarage.segmentation.DeepLabV3XceptionSegmenter
+import com.rootcrack.aigarage.segmentation.SegmentationResult
+import com.rootcrack.aigarage.utils.ImageUtils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import org.tensorflow.lite.DataType
-import org.tensorflow.lite.Interpreter
-import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.io.IOException
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.MappedByteBuffer
-import java.nio.channels.FileChannel
+import android.graphics.Canvas as AndroidCanvas
+import android.graphics.Paint as AndroidPaint
 
-private const val TAG = "DeepLabV3Seg"
+private const val TAG_AUTO_MASK_PREVIEW = "AutoMaskPreviewScreen"
+private val MASK_OVERLAY_COLOR_PREVIEW = Color.Blue.copy(alpha = 0.4f)
+private val BACKGROUND_MASK_OVERLAY_COLOR_PREVIEW = Color.Green.copy(alpha = 0.4f)
 
-val CITYSCAPES_LABELS_IN_SEGMENTER = arrayOf(
-    "road", "sidewalk", "building", "wall", "fence", "pole", "traffic light", "traffic sign",
-    "vegetation", "terrain", "sky", "person", "rider", "car", "truck", "bus", "train",
-    "motorcycle", "bicycle"
+
+val CITYSCAPES_LABELS = arrayOf(
+    "road", "sidewalk", "building", "wall", "fence", "pole", "traffic light",
+    "traffic sign", "vegetation", "terrain", "sky", "person", "rider", "car",
+    "truck", "bus", "train", "motorcycle", "bicycle"
 )
 
-data class SegmentationResult(
-    val maskBitmap: Bitmap?,
-    val maskedPixelRatio: Float,
-    val acceptedAutomatically: Boolean,
-    val processingTimeMs: Long = 0L
-)
+const val DEFAULT_TARGET_CLASS_NAME = "car"
 
-class DeepLabV3XceptionSegmenter(
-    private val context: Context,
-    private val modelAssetPath: String // Model yolu artık dışarıdan alınıyor
+fun getCityscapesIndexForObject(className: String): Int {
+    val index = CITYSCAPES_LABELS.indexOfFirst { it.equals(className.trim(), ignoreCase = true) }
+    return if (index != -1) {
+        index
+    } else {
+        CITYSCAPES_LABELS.indexOf(DEFAULT_TARGET_CLASS_NAME)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AutoMaskPreviewScreen(
+    navController: NavController,
+    imageUriString: String,
+    objectsToMaskCommaSeparated: String,
+    modelPath: String
 ) {
+    val context = LocalContext.current
+    var isLoading by remember { mutableStateOf(true) }
+    var originalBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var displayedOriginalBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var foregroundMaskBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var backgroundMaskBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var displayBitmapWithForegroundMask by remember { mutableStateOf<Bitmap?>(null) }
+    var displayBitmapWithBackgroundMask by remember { mutableStateOf<Bitmap?>(null) }
+    var errorText by remember { mutableStateOf<String?>(null) }
 
-    private var interpreter: Interpreter? = null
-
-    // Bu değerlerin her iki model için de aynı olduğunu varsayıyoruz.
-    private val INPUT_HEIGHT = 1025
-    private val INPUT_WIDTH = 2049
-    private val INPUT_CHANNELS = 3
-    private val OUT_HEIGHT = 257
-    private val OUT_WIDTH = 513
-    private val OUT_CHANNELS = 19
-
-    suspend fun initialize(): Boolean = withContext(Dispatchers.IO) {
-        try {
-            if (interpreter != null) return@withContext true
-            val mappedByteBuffer = loadModelFile(context, modelAssetPath) // Parametreyi kullan
-            val options = Interpreter.Options()
-            interpreter = Interpreter(mappedByteBuffer, options)
-            Log.i(TAG, "Interpreter yüklendi: $modelAssetPath")
-            return@withContext true
-        } catch (e: Exception) {
-            Log.e(TAG, "Interpreter başlatılırken hata: ${e.message}", e)
-            return@withContext false
-        }
+    val targetObjectName = remember(objectsToMaskCommaSeparated) {
+        objectsToMaskCommaSeparated.split(',').firstOrNull { it.isNotBlank() }?.trim() ?: DEFAULT_TARGET_CLASS_NAME
+    }
+    val targetClassIndexForSegmenter = remember(targetObjectName) {
+        getCityscapesIndexForObject(targetObjectName)
     }
 
-    fun close() {
+    val imageUri = remember(imageUriString) { imageUriString.toUri() }
+
+    // HATA DÜZELTMESİ: Segmenter'ın yaşam döngüsü tamamen LaunchedEffect içine alındı.
+    LaunchedEffect(imageUri, targetClassIndexForSegmenter, modelPath) {
+        isLoading = true
+        errorText = null
+        // Önceki bitmap'leri temizle
+        originalBitmap = null; displayedOriginalBitmap = null; foregroundMaskBitmap = null
+        backgroundMaskBitmap = null; displayBitmapWithForegroundMask = null; displayBitmapWithBackgroundMask = null
+
+        var segmenter: DeepLabV3XceptionSegmenter? = null
         try {
-            interpreter?.close()
-            interpreter = null
-            Log.i(TAG, "Interpreter kapatıldı.")
-        } catch (e: Exception) {
-            Log.w(TAG, "Interpreter kapatılırken hata: ${e.message}")
-        }
-    }
-
-    suspend fun segment(bitmap: Bitmap, targetClassIndex: Int): SegmentationResult = withContext(Dispatchers.Default) {
-        val interp = interpreter
-        if (interp == null) {
-            return@withContext SegmentationResult(null, 0f, false)
-        }
-
-        val inputBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_WIDTH, INPUT_HEIGHT, true)
-        val inputBuffer = ByteBuffer.allocateDirect(1 * INPUT_HEIGHT * INPUT_WIDTH * INPUT_CHANNELS * 4).apply {
-            order(ByteOrder.nativeOrder())
-            val intValues = IntArray(INPUT_WIDTH * INPUT_HEIGHT)
-            inputBitmap.getPixels(intValues, 0, INPUT_WIDTH, 0, 0, INPUT_WIDTH, INPUT_HEIGHT)
-            var pixelIdx = 0
-            for (y in 0 until INPUT_HEIGHT) {
-                for (x in 0 until INPUT_WIDTH) {
-                    val pixel = intValues[pixelIdx++]
-                    putFloat(((pixel shr 16 and 0xFF) - 127.5f) / 127.5f) // R
-                    putFloat(((pixel shr 8 and 0xFF) - 127.5f) / 127.5f)  // G
-                    putFloat(((pixel and 0xFF) - 127.5f) / 127.5f)        // B
-                }
+            Log.d(TAG_AUTO_MASK_PREVIEW, "Yüklenen maskeleme modeli: $modelPath")
+            // 1. Segmenter'ı coroutine içinde oluştur
+            segmenter = DeepLabV3XceptionSegmenter(context = context, modelAssetPath = modelPath)
+            
+            val initSuccess = segmenter.initialize()
+            ensureActive() // Coroutine iptal edildi mi kontrol et
+            if (!initSuccess) {
+                errorText = "Otomatik maskeleme motoru başlatılamadı."
+                isLoading = false // Yüklemeyi durdur
+                return@LaunchedEffect
             }
-            rewind()
-        }
 
-        val outputByteBuffer = ByteBuffer.allocateDirect(1 * OUT_HEIGHT * OUT_WIDTH * OUT_CHANNELS * 4)
-        outputByteBuffer.order(ByteOrder.nativeOrder())
+            val loadedBitmap = withContext(Dispatchers.IO) { loadBitmapFromUri(context, imageUri) }
+            ensureActive()
+            if (loadedBitmap == null) {
+                errorText = "Görsel yüklenemedi: $imageUriString"
+                isLoading = false
+                return@LaunchedEffect
+            }
+            originalBitmap = loadedBitmap
+            displayedOriginalBitmap = loadedBitmap
 
-        try {
-            interp.run(inputBuffer, outputByteBuffer)
+            // 2. Segmenter'ı kullan
+            val segmentationResult = withContext(Dispatchers.Default) {
+                ensureActive()
+                segmenter.segment(loadedBitmap, targetClassIndexForSegmenter)
+            }
+            
+            ensureActive()
+            if (segmentationResult.maskBitmap != null) {
+                val fgMask = segmentationResult.maskBitmap
+                foregroundMaskBitmap = fgMask
+                val bgMask = withContext(Dispatchers.IO) { ImageUtils.invertMaskBitmap(fgMask) }
+                backgroundMaskBitmap = bgMask
+                displayBitmapWithForegroundMask = withContext(Dispatchers.Default) { overlayMaskOnBitmap(loadedBitmap, fgMask, MASK_OVERLAY_COLOR_PREVIEW.toArgb()) }
+                displayBitmapWithBackgroundMask = withContext(Dispatchers.Default) { overlayMaskOnBitmap(loadedBitmap, bgMask, BACKGROUND_MASK_OVERLAY_COLOR_PREVIEW.toArgb()) }
+            } else {
+                errorText = "Maske oluşturulamadı. '$targetObjectName' nesnesi resimde bulunamadı."
+            }
         } catch (e: Exception) {
-            return@withContext SegmentationResult(null, 0f, false)
+            Log.e(TAG_AUTO_MASK_PREVIEW, "Maskeleme sırasında hata", e)
+            errorText = "Maskeleme sırasında bir hata oluştu."
+        } finally {
+            // 3. Segmenter'ı her durumda (başarılı, hatalı, iptal) finally bloğunda kapat
+            Log.d(TAG_AUTO_MASK_PREVIEW, "Segmenter kapatılıyor.")
+            segmenter?.close()
+            isLoading = false
         }
-        outputByteBuffer.rewind()
-        val outputFloatBuffer = outputByteBuffer.asFloatBuffer()
+    }
 
-        val maskBitmap = Bitmap.createBitmap(OUT_WIDTH, OUT_HEIGHT, Bitmap.Config.ARGB_8888)
-        var positivePixelCount = 0
-        var bufferPosition = 0
-
-        for (y in 0 until OUT_HEIGHT) {
-            for (x in 0 until OUT_WIDTH) {
-                var maxScore = -Float.MAX_VALUE
-                var predictedClassIndex = -1
-                for (c in 0 until OUT_CHANNELS) {
-                    val score = outputFloatBuffer.get(bufferPosition + c)
-                    if (score > maxScore) {
-                        maxScore = score
-                        predictedClassIndex = c
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Maske Seçenekleri: ${targetObjectName.replaceFirstChar { it.titlecase() }}") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            )
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier.fillMaxSize().padding(paddingValues).background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isLoading) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Maskeler oluşturuluyor...", style = MaterialTheme.typography.bodyLarge)
+                }
+            } else if (errorText != null) {
+                Text(
+                    text = errorText!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(16.dp),
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        MaskPreviewCard(
+                            title = "Nesne Maskesi",
+                            previewBitmap = displayBitmapWithForegroundMask,
+                            onClick = {
+                                foregroundMaskBitmap?.let { mask ->
+                                    navigateToEditScreen(navController, imageUri, mask, targetObjectName, EditTypeValues.FOREGROUND)
+                                }
+                            }
+                        )
+                        MaskPreviewCard(
+                            title = "Arka Plan Maskesi",
+                            previewBitmap = displayBitmapWithBackgroundMask,
+                            onClick = {
+                                backgroundMaskBitmap?.let { mask ->
+                                    navigateToEditScreen(navController, imageUri, mask, "background", EditTypeValues.BACKGROUND)
+                                }
+                            }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            navigateToEditScreen(navController, imageUri, null, "maskesiz", EditTypeValues.NONE)
+                        },
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = null)
+                        Spacer(Modifier.size(8.dp))
+                        Text("Maskesiz Düzenle")
                     }
                 }
-                bufferPosition += OUT_CHANNELS
-                if (predictedClassIndex == targetClassIndex) {
-                    maskBitmap.setPixel(x, y, Color.WHITE)
-                    positivePixelCount++
-                } else {
-                    maskBitmap.setPixel(x, y, Color.BLACK)
-                }
-            }
-        }
-
-        if (positivePixelCount == 0) {
-            maskBitmap.recycle()
-            return@withContext SegmentationResult(null, 0f, false)
-        }
-
-        val scaledMask = Bitmap.createScaledBitmap(maskBitmap, bitmap.width, bitmap.height, true)
-        maskBitmap.recycle()
-
-        val maskedPixelRatio = positivePixelCount.toFloat() / (OUT_WIDTH * OUT_HEIGHT)
-        val accepted = maskedPixelRatio >= 0.01
-
-        return@withContext SegmentationResult(scaledMask, maskedPixelRatio, accepted)
-    }
-
-    @Throws(IOException::class)
-    private fun loadModelFile(context: Context, modelPath: String): MappedByteBuffer {
-        context.assets.openFd(modelPath).use { assetFileDescriptor ->
-            FileInputStream(assetFileDescriptor.fileDescriptor).use { inputStream ->
-                val fileChannel = inputStream.channel
-                val startOffset = assetFileDescriptor.startOffset
-                val declaredLength = assetFileDescriptor.declaredLength
-                return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
             }
         }
     }
+}
+
+@Composable
+fun RowScope.MaskPreviewCard(title: String, previewBitmap: Bitmap?, onClick: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.weight(1f)
+    ) {
+        Text(text = title, style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (previewBitmap != null) {
+                Image(
+                    bitmap = previewBitmap.asImageBitmap(),
+                    contentDescription = "$title önizlemesi",
+                    contentScale = ContentScale.Fit
+                )
+            } else {
+                Icon(Icons.Default.BrokenImage, "Maske Yok", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = onClick, enabled = previewBitmap != null) {
+            Text("Bunu Seç")
+        }
+    }
+}
+
+private fun navigateToEditScreen(
+    navController: NavController,
+    imageUri: Uri,
+    maskBitmap: Bitmap?,
+    instructionPrefix: String,
+    editType: String
+) {
+    val encodedImageUri = Uri.encode(imageUri.toString())
+    val base64Mask = maskBitmap?.let { ImageUtils.convertBitmapToBase64(it) } ?: "null"
+    val encodedMask = Uri.encode(base64Mask)
+    val initialInstruction = Uri.encode(if (instructionPrefix != "maskesiz") "$instructionPrefix " else "")
+
+    val route = Screen.EditPhoto.route
+        .replace("{${NavArgs.IMAGE_URI}}", encodedImageUri)
+        .replace("{${NavArgs.INSTRUCTION}}", initialInstruction)
+        .replace("{${NavArgs.MASK}}", encodedMask)
+        .replace("{${NavArgs.EDIT_TYPE}}", editType)
+    navController.navigate(route)
+}
+
+private fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
+    return try {
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            BitmapFactory.decodeStream(inputStream)
+        }
+    } catch (e: Exception) {
+        Log.e(TAG_AUTO_MASK_PREVIEW, "Bitmap yüklenirken hata: $uri", e)
+        null
+    }
+}
+
+private fun overlayMaskOnBitmap(original: Bitmap, mask: Bitmap, @ColorInt color: Int): Bitmap {
+    val resultBitmap = original.copy(Bitmap.Config.ARGB_8888, true)
+    val scaledMask = mask.scale(original.width, original.height, filter = false)
+    val canvas = AndroidCanvas(resultBitmap)
+    val paint = AndroidPaint().apply {
+        colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+    }
+    canvas.drawBitmap(scaledMask, 0f, 0f, paint)
+    scaledMask.recycle()
+    return resultBitmap
 }
