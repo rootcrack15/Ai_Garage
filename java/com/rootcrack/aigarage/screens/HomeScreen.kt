@@ -1,64 +1,88 @@
 package com.rootcrack.aigarage.screens
 
+import android.content.ContentValues
+import android.content.Context
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Android // Örnek uygulama ikonu
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.SportsMotorsports // Örnek uygulama ikonu
-// import androidx.compose.material.icons.filled.Settings // Kullanılmıyorsa kaldırılabilir
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.SportsMotorsports
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.core.content.FileProvider
 import androidx.navigation.NavController
-import coil.ImageLoader // Coil için
-import coil.compose.rememberAsyncImagePainter // Coil için
-import coil.decode.GifDecoder // Coil GIF için
-import coil.decode.ImageDecoderDecoder // Coil GIF için (API 28+)
-import com.rootcrack.aigarage.R // Drawable ve raw kaynaklarınız için R dosyanız
+import coil.compose.rememberAsyncImagePainter
 import com.rootcrack.aigarage.navigation.Screen
-import androidx.media3.common.MediaItem // ExoPlayer için
-import androidx.media3.exoplayer.ExoPlayer // ExoPlayer için
-import androidx.media3.ui.PlayerView // ExoPlayer UI için
+import com.rootcrack.aigarage.utils.FileUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.OutputStream
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var imageFiles by remember { mutableStateOf<List<File>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var selectedImageFile by remember { mutableStateOf<File?>(null) }
+
+    // AI ile işlenmiş resimlerin bulunduğu klasörü dinle
+    fun loadProcessedImages() {
+        coroutineScope.launch(Dispatchers.IO) {
+            val processedDir = context.getExternalFilesDir(FileUtil.DIRECTORY_NAME_APP_SPECIFIC_SUBFOLDER)
+            val files: List<File> = processedDir?.listFiles { file ->
+                file.isFile && (file.extension.equals("png", true) || file.extension.equals("jpg", true))
+            }?.sortedByDescending { it.lastModified() } ?: emptyList()
+
+            withContext(Dispatchers.Main) {
+                imageFiles = files
+                isLoading = false
+            }
+        }
+    }
+
+    // Ekran her açıldığında veya yeniden odaklandığında resimleri yükle
+    LaunchedEffect(Unit, navController.currentBackStackEntry) {
+        loadProcessedImages()
+    }
 
     Scaffold(
-        containerColor = Color.Transparent, // Arka plan GIF/video'nun görünmesi için
         topBar = {
             TopAppBar(
-                title = { Text(text = "AI Garage") },
+                title = { Text(text = "AI Garage Keşfet") },
                 navigationIcon = {
                     Icon(
-                        imageVector = Icons.Filled.SportsMotorsports, // VEYA painterResource(R.drawable.your_app_logo)
+                        imageVector = Icons.Filled.SportsMotorsports,
                         contentDescription = "Uygulama Logosu",
                         modifier = Modifier
                             .padding(start = 12.dp, end = 15.dp)
@@ -70,129 +94,182 @@ fun HomeScreen(navController: NavController) {
                     IconButton(onClick = { navController.navigate(Screen.Camera.route) }) {
                         Icon(Icons.Default.CameraAlt, contentDescription = "Kamera")
                     }
-                    IconButton(onClick = {
+                    IconButton(onClick = { /* TODO: Bildirimler */
                         Log.d("HomeScreen", "Notifications icon clicked")
-                        // TODO: Bildirimler için bir rota veya işlev tanımlayın
                     }) {
                         Icon(Icons.Default.Notifications, contentDescription = "Bildirimler")
                     }
-                    /*
-                    IconButton(onClick = { navController.navigate(Screen.Settings.route) }) {
-                        Icon(Icons.Filled.Settings, contentDescription = "Ayarlar")
-                    }
-                    */
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), // Hafif saydam
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
                     actionIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
-        })
-    { innerPadding ->
+        }
+    ) { innerPadding ->
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            // --- Arka Plan Seçenekleri ---
-
-            // Seçenek 1: GIF Arka Planı (Şu an aktif olan)
-            // Kullanmak için drawable klasörünüze bir GIF dosyası ekleyin (örn: R.drawable.animated_background)
-            // ve aşağıdaki gifResourceId'yi güncelleyin.
-            val imageLoader = remember {
-                ImageLoader.Builder(context)
-                    .components {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                            add(ImageDecoderDecoder.Factory())
-                        } else {
-                            add(GifDecoder.Factory())
-                        }
-                    }
-                    .build()
-            }
-            Image(
-                painter = rememberAsyncImagePainter(
-                    model = R.drawable.ai_garage_gif, // << KENDİ GIF KAYNAĞINIZLA DEĞİŞTİRİN
-                    imageLoader = imageLoader
-                ),
-                contentDescription = "Animasyonlu Arka Plan",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop // Veya FillBounds, Fit, FillHeight, FillWidth vb.
-            )
-
-            /*
-            // Seçenek 2: Video Arka Planı (Yorum satırında, kullanıma hazır)
-            // Kullanmak için raw klasörünüze bir video dosyası ekleyin (örn: R.raw.background_video)
-            // ve aşağıdaki videoUri'yi güncelleyin.
-            // Ayrıca build.gradle dosyanıza ExoPlayer bağımlılıklarını eklediğinizden emin olun.
-            val exoPlayer = remember {
-                ExoPlayer.Builder(context).build().apply {
-                    // Örnek URI: raw klasöründen bir video için
-                    val videoFileUri = "android.resource://${context.packageName}/${R.raw.your_background_video}" // << KENDİ VİDEO KAYNAĞINIZLA DEĞİŞTİRİN
-                    // Örnek URI: internetten bir video için (AndroidManifest.xml'e internet izni eklemeyi unutmayın)
-                    // val videoWebUri = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-
-                    val mediaItem = MediaItem.fromUri(videoFileUri) // veya videoWebUri
-                    setMediaItem(mediaItem)
-                    repeatMode = ExoPlayer.REPEAT_MODE_ONE // Videoyu sürekli döngüye al
-                    playWhenReady = true // Hazır olduğunda otomatik oynat
-                    volume = 0f // Arka plan videosu için sesi kapatabilirsiniz
-                    prepare()
-                }
-            }
-
-            DisposableEffect(Unit) {
-                onDispose {
-                    exoPlayer.release() // Kaynakları serbest bırak
-                }
-            }
-
-            AndroidView(
-                factory = { ctx ->
-                    PlayerView(ctx).apply {
-                        player = exoPlayer
-                        useController = false // Oynatma kontrollerini gizle (arka plan için)
-                        // Aspect ratio ayarları için PlayerView'a özel ayarlar gerekebilir
-                        // veya dışındaki Box/Modifier ile yönetilebilir.
-                    }
-                },
-                modifier = Modifier.fillMaxSize()
-            )
-            */
-
-            /*
-            // Seçenek 3: Statik Resim Arka Planı (Yorum satırında)
-            // Kullanmak için drawable klasörünüze bir resim dosyası ekleyin (örn: R.drawable.static_background)
-            // ve aşağıdaki painterResource'u güncelleyin.
-            Image(
-                painter = painterResource(id = R.drawable.static_background), // << KENDİ STATİK RESİM KAYNAĞINIZLA DEĞİŞTİRİN
-                contentDescription = "Ana Ekran Arka Planı",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-            */
-
-            // --- Ana İçerik (Arka planın üzerinde) ---
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding), // Scaffold'dan gelen padding (TopAppBar vb. için)
-                contentAlignment = Alignment.Center
-            ) {
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (imageFiles.isEmpty()) {
                 Text(
-                    "Hoş geldin! Yakında burada efektler, öneriler ve daha fazlası olacak!",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.95f), // Okunabilirlik için
+                    text = "Henüz AI ile işlenmiş bir resim yok.\nKamera ikonuna dokunarak başlayın!",
+                    style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
-                        .padding(horizontal = 32.dp)
-                        .background(
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.65f), // Metin arkasına hafif saydam bir kutu
-                            shape = RoundedCornerShape(12.dp) // Köşeleri biraz daha yuvarlak
+                        .align(Alignment.Center)
+                        .padding(32.dp)
+                )
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 120.dp),
+                    contentPadding = PaddingValues(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(imageFiles, key = { it.absolutePath }) { file ->
+                        Image(
+                            painter = rememberAsyncImagePainter(model = file),
+                            contentDescription = "AI Sonucu: ${file.name}",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { selectedImageFile = file }
                         )
-                        .padding(16.dp) // İçeriğe padding
+                    }
+                }
+            }
+
+            // Seçilen resmi detaylı göstermek için Dialog
+            selectedImageFile?.let { file ->
+                ImageDetailDialog(
+                    file = file,
+                    onDismiss = { selectedImageFile = null }
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ImageDetailDialog(file: File, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var isSaving by remember { mutableStateOf(false) }
+
+    val imageUri = remember(file) {
+        try {
+            FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+        } catch (e: Exception) {
+            Log.e("HomeScreen", "ImageDetailDialog: FileProvider URI oluşturulamadı.", e)
+            null
+        }
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .padding(16.dp)
+                .clip(RoundedCornerShape(16.dp)) // Curve kenarlar
+                .background(MaterialTheme.colorScheme.surface)
+                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp)) // Çerçeve
+        ) {
+            if (imageUri != null) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = imageUri),
+                    contentDescription = "Detaylı Resim",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f) // Oranı koru
+                )
+                IconButton(
+                    onClick = {
+                        if (isSaving) return@IconButton
+                        isSaving = true
+                        coroutineScope.launch {
+                            val success = saveImageToGallery(context, imageUri)
+                            withContext(Dispatchers.Main) {
+                                if (success) {
+                                    Toast.makeText(context, "Resim galeriye kaydedildi!", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Resim kaydedilemedi.", Toast.LENGTH_SHORT).show()
+                                }
+                                isSaving = false
+                                onDismiss() // Kayıttan sonra dialogu kapat
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(12.dp)
+                        .background(Color.White.copy(alpha = 0.7f), CircleShape) // Hafif şeffaf beyaz arka plan
+                ) {
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Save,
+                            contentDescription = "Galeriye Kaydet",
+                            tint = Color.Black
+                        )
+                    }
+                }
+            } else {
+                Text("Resim yüklenemedi.", modifier = Modifier.align(Alignment.Center).padding(24.dp))
+            }
+        }
+    }
+}
+
+private suspend fun saveImageToGallery(context: Context, uri: Uri): Boolean {
+    return withContext(Dispatchers.IO) {
+        val displayName = "AIGarage_Keşfet_${System.currentTimeMillis()}.png"
+        val imageCollection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        } else {
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        }
+
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, displayName)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "AIGarage")
+                put(MediaStore.Images.Media.IS_PENDING, 1)
+            }
+        }
+
+        var newImageUri: Uri? = null
+        try {
+            newImageUri = context.contentResolver.insert(imageCollection, contentValues)
+                ?: return@withContext false
+
+            context.contentResolver.openOutputStream(newImageUri)?.use { outputStream: OutputStream ->
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    inputStream.copyTo(outputStream)
+                } ?: return@withContext false
+            } ?: return@withContext false
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                contentValues.clear()
+                contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+                context.contentResolver.update(newImageUri, contentValues, null, null)
+            }
+            true
+        } catch (e: Exception) {
+            Log.e("HomeScreen", "Resim galeriye kaydedilirken hata", e)
+            newImageUri?.let { context.contentResolver.delete(it, null, null) }
+            false
         }
     }
 }

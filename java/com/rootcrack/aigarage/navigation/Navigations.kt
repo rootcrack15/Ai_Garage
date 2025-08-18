@@ -1,5 +1,3 @@
-// Navigations.kt: Uygulamanın navigasyon yapısını tanımlar, ekranlar arasında geçişi yönetir. API 24+ uyumlu.
-
 package com.rootcrack.aigarage.navigation
 
 import android.net.Uri
@@ -25,15 +23,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.rootcrack.aigarage.components.CustomBottomNavBar // CustomBottomNavBar kullandığınızı varsayıyorum
-import com.rootcrack.aigarage.screens.AutoMaskPreviewScreen
-import com.rootcrack.aigarage.screens.CameraScreen
-import com.rootcrack.aigarage.screens.EditPhotoScreenWithPrompt
-import com.rootcrack.aigarage.screens.GalleryScreen
-import com.rootcrack.aigarage.screens.HomeScreen
-import com.rootcrack.aigarage.screens.PhotoPreviewScreen
-import com.rootcrack.aigarage.screens.SettingsScreen
-import com.rootcrack.aigarage.screens.rememberCameraScreenStateHolder
+import com.rootcrack.aigarage.components.CustomBottomNavBar
+import com.rootcrack.aigarage.screens.*
 import com.rootcrack.aigarage.viewmodels.CameraViewModel
 import kotlinx.coroutines.launch
 
@@ -43,10 +34,9 @@ sealed class Screen(val route: String) {
     object Gallery : Screen("gallery_screen")
     object Settings : Screen("settings_screen")
     object PhotoPreview : Screen("photo_preview_screen/{imageUri}")
-    // EditPhoto rotasına EDIT_TYPE argümanını ekleyelim (isteğe bağlı ama kullanışlı olabilir)
     object EditPhoto : Screen("edit_photo_screen/{${NavArgs.IMAGE_URI}}/{${NavArgs.INSTRUCTION}}/{${NavArgs.MASK}}/{${NavArgs.EDIT_TYPE}}")
     object PhotoDetail : Screen("photo_detail_screen/{${NavArgs.IMAGE_URI}}")
-    object AutoMaskPreview : Screen("auto_mask_preview_screen/{${NavArgs.IMAGE_URI}}/{${NavArgs.OBJECT_TO_MASK}}")
+    object AutoMaskPreview : Screen("auto_mask_preview_screen/{${NavArgs.IMAGE_URI}}/{${NavArgs.OBJECT_TO_MASK}}/{${NavArgs.MODEL_PATH}}")
 }
 
 object NavArgs {
@@ -54,14 +44,14 @@ object NavArgs {
     const val INSTRUCTION = "instruction"
     const val OBJECT_TO_MASK = "objectToMask"
     const val MASK = "mask"
-    const val EDIT_TYPE = "editType" // Yeni argüman: "foreground" veya "background" olabilir
+    const val EDIT_TYPE = "editType"
+    const val MODEL_PATH = "modelPath" // Yeni argüman
 }
 
-// EDIT_TYPE için varsayılan değerler
 object EditTypeValues {
     const val FOREGROUND = "foreground"
     const val BACKGROUND = "background"
-    const val NONE = "none" // Maske olmadan direkt düzenleme veya varsayılan
+    const val NONE = "none"
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -92,9 +82,6 @@ fun AppNavigation(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
             if (showGlobalBottomBar) {
-                // CustomBottomNavBar yerine BottomNavigationBar kullandığınızı varsayıyorum,
-                // eğer CustomBottomNavBar ise o kalsın.
-                // com.rootcrack.aigarage.components.BottomNavigationBar(navController = navController)
                 CustomBottomNavBar(navController = navController, currentRoute = currentRoute)
             }
         }
@@ -144,7 +131,7 @@ fun AppNavigation(
                     navArgument(NavArgs.IMAGE_URI) { type = NavType.StringType },
                     navArgument(NavArgs.INSTRUCTION) { type = NavType.StringType; nullable = true },
                     navArgument(NavArgs.MASK) { type = NavType.StringType; nullable = true },
-                    navArgument(NavArgs.EDIT_TYPE) { type = NavType.StringType; nullable = true; defaultValue = EditTypeValues.NONE } // Yeni argüman eklendi
+                    navArgument(NavArgs.EDIT_TYPE) { type = NavType.StringType; nullable = true; defaultValue = EditTypeValues.NONE }
                 )
             ) { backStackEntry ->
                 val encodedImageUri = backStackEntry.arguments?.getString(NavArgs.IMAGE_URI)
@@ -153,8 +140,6 @@ fun AppNavigation(
                 val editType = backStackEntry.arguments?.getString(NavArgs.EDIT_TYPE) ?: EditTypeValues.NONE
 
                 if (encodedImageUri == null) {
-                    Log.e("AppNavigation", "EditPhoto için imageUri null geldi.")
-                    Toast.makeText(context, "Resim düzenleme başlatılamadı.", Toast.LENGTH_SHORT).show()
                     navController.popBackStack()
                     return@composable
                 }
@@ -164,7 +149,7 @@ fun AppNavigation(
                     imageUri = Uri.decode(encodedImageUri),
                     initialInstruction = encodedInitialInstruction?.let { Uri.decode(it) } ?: "",
                     base64Mask = encodedMask?.let { if (it.isNotEmpty() && it != "null") Uri.decode(it) else null },
-                    editType = editType, // editType'ı EditPhotoScreenWithPrompt'a iletiyoruz
+                    editType = editType,
                     onProcessPhoto = { originalImageUri, maskBase64, instruction ->
                         coroutineScope.launch {
                             val processedUri = cameraScreenState.processImageWithAI(
@@ -174,19 +159,12 @@ fun AppNavigation(
                                 base64Mask = maskBase64
                             )
                             if (processedUri != null) {
-                                cameraScreenState.lastSavedImageUri.value = processedUri
-                                Toast.makeText(context, "Fotoğraf başarıyla işlendi!", Toast.LENGTH_SHORT).show()
-
                                 val routeWithArgument = Screen.PhotoPreview.route.replace(
                                     "{${NavArgs.IMAGE_URI}}",
                                     Uri.encode(processedUri.toString())
                                 )
-                                Log.d("AppNavigation", "Navigating to PhotoPreview with: $routeWithArgument")
-                                navController.navigate(routeWithArgument) {
-                                    popUpTo(Screen.Gallery.route) { inclusive = false }
-                                }
+                                navController.navigate(routeWithArgument)
                             } else {
-                                Log.e("AppNavigation", "İşlenmiş URI null geldi.")
                                 Toast.makeText(context, "Fotoğraf işlenirken sorun oluştu.", Toast.LENGTH_LONG).show()
                             }
                         }
@@ -206,14 +184,15 @@ fun AppNavigation(
                 route = Screen.AutoMaskPreview.route,
                 arguments = listOf(
                     navArgument(NavArgs.IMAGE_URI) { type = NavType.StringType },
-                    navArgument(NavArgs.OBJECT_TO_MASK) { type = NavType.StringType }
+                    navArgument(NavArgs.OBJECT_TO_MASK) { type = NavType.StringType },
+                    navArgument(NavArgs.MODEL_PATH) { type = NavType.StringType } // Yeni argüman
                 )
             ) { backStackEntry ->
                 val imageUriString = backStackEntry.arguments?.getString(NavArgs.IMAGE_URI)
                 val objectToMask = backStackEntry.arguments?.getString(NavArgs.OBJECT_TO_MASK)
+                val modelPath = backStackEntry.arguments?.getString(NavArgs.MODEL_PATH) // Yeni argüman
 
-                if (imageUriString == null || objectToMask == null) {
-                    Log.e("AppNavigation", "AutoMaskPreview için imageUri veya objectToMask null.")
+                if (imageUriString == null || objectToMask == null || modelPath == null) {
                     Toast.makeText(context, "Otomatik maskeleme başlatılamadı.", Toast.LENGTH_SHORT).show()
                     navController.popBackStack()
                     return@composable
@@ -221,7 +200,8 @@ fun AppNavigation(
                 AutoMaskPreviewScreen(
                     navController = navController,
                     imageUriString = Uri.decode(imageUriString),
-                    objectsToMaskCommaSeparated = Uri.decode(objectToMask)
+                    objectsToMaskCommaSeparated = Uri.decode(objectToMask),
+                    modelPath = Uri.decode(modelPath) // Yeni argümanı pasla
                 )
             }
         }

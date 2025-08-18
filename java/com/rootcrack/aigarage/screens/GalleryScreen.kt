@@ -1,4 +1,3 @@
-
 package com.rootcrack.aigarage.screens
 
 import android.content.ActivityNotFoundException
@@ -14,17 +13,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -36,44 +25,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.AddPhotoAlternate
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.AutoFixHigh
-import androidx.compose.material.icons.filled.BrokenImage
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Deselect
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.SelectAll
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -102,7 +56,11 @@ import java.io.FileOutputStream
 
 const val TAG_GALLERY_SCREEN = "GalleryScreen"
 
-// Modelinizin tanıdığı nesneler için map
+// Model dosyalarının adları
+const val TFLITE_MODEL_PRECISE = "deeplabv3-xception65.tflite"
+const val TFLITE_MODEL_FAST = "mask.tflite"
+
+// ... (MASKABLE_OBJECTS_GALLERY ve diğer sabitler aynı kalıyor)
 val MASKABLE_OBJECTS_GALLERY = mapOf(
     "Araba" to "car",
     "Motosiklet" to "motorcycle",
@@ -127,6 +85,7 @@ enum class GallerySortOrder {
     DATE_DESC, DATE_ASC, NAME_ASC, NAME_DESC
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun GalleryScreen(navController: NavHostController) {
@@ -134,9 +93,7 @@ fun GalleryScreen(navController: NavHostController) {
     val coroutineScope = rememberCoroutineScope()
 
     val galleryDir = remember {
-        File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "AIGarage").apply {
-            if (!exists()) mkdirs()
-        }
+        File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "AIGarage").apply { mkdirs() }
     }
 
     val imageFiles = remember { mutableStateListOf<File>() }
@@ -147,11 +104,11 @@ fun GalleryScreen(navController: NavHostController) {
     var isSelectionMode by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
 
-    // Hangi dosya için "daha fazla" menüsünün veya nesne seçim dialogunun açık olduğunu tutar
     var showMoreMenuForFile by remember { mutableStateOf<File?>(null) }
     var fileForAutoMaskSelection by remember { mutableStateOf<File?>(null) }
+    var showModelSelectionDialog by remember { mutableStateOf(false) } // Yeni state
     var showAutoMaskObjectSelectionDialog by remember { mutableStateOf(false) }
-
+    var selectedModelPath by remember { mutableStateOf(TFLITE_MODEL_PRECISE) } // Varsayılan hassas model
 
     fun loadAndSortFiles() {
         isLoading = true
@@ -178,9 +135,6 @@ fun GalleryScreen(navController: NavHostController) {
         loadAndSortFiles()
         isSelectionMode = false
         selectedFilesForBatchOperation.clear()
-        showMoreMenuForFile = null
-        fileForAutoMaskSelection = null
-        showAutoMaskObjectSelectionDialog = false
     }
 
     val pickImageForAILauncher = rememberLauncherForActivityResult(
@@ -207,25 +161,8 @@ fun GalleryScreen(navController: NavHostController) {
                 uris.forEach { uri ->
                     try {
                         context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                            val originalFileName = context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                                if (cursor.moveToFirst()) {
-                                    val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
-                                    if (nameIndex != -1) cursor.getString(nameIndex) else null
-                                } else null
-                            } ?: "imported_${System.currentTimeMillis()}.${
-                                uri.lastPathSegment?.substringAfterLast('.', "jpg") ?: "jpg"
-                            }"
-
-                            var counter = 0
-                            var newFileName = originalFileName
-                            var file = File(galleryDir, newFileName)
-                            while (file.exists()) {
-                                counter++
-                                val nameWithoutExtension = originalFileName.substringBeforeLast('.')
-                                val extension = originalFileName.substringAfterLast('.', "")
-                                newFileName = "${nameWithoutExtension}_$counter${if (extension.isNotEmpty()) ".$extension" else ""}"
-                                file = File(galleryDir, newFileName)
-                            }
+                            val originalFileName = "imported_${System.currentTimeMillis()}.jpg"
+                            val file = File(galleryDir, originalFileName)
                             FileOutputStream(file).use { outputStream -> inputStream.copyTo(outputStream) }
                             importedCount++
                         }
@@ -246,44 +183,20 @@ fun GalleryScreen(navController: NavHostController) {
         }
     }
 
-    // Cihazdan OTOMATİK MASKELEME için resim seçme launcher'ı
     val pickImageForAutoMaskLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
-        uri?.let { selectedUri ->
-            isLoading = true
-            coroutineScope.launch(Dispatchers.IO) {
-                try {
-                    // Bu dosyayı geçici olarak AIGarage klasörüne kopyala
-                    val tempFile = File(galleryDir, "automask_temp_${System.currentTimeMillis()}.jpg")
-                    context.contentResolver.openInputStream(selectedUri)?.use { inputStream ->
-                        FileOutputStream(tempFile).use { outputStream ->
-                            inputStream.copyTo(outputStream)
-                        }
-                    }
-                    withContext(Dispatchers.Main) {
-                        isLoading = false
-                        fileForAutoMaskSelection = tempFile // Seçilen ve kopyalanan dosyayı state'e ata
-                        showAutoMaskObjectSelectionDialog = true // Nesne seçim dialogunu göster
-                    }
-                } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        isLoading = false
-                        Log.e(TAG_GALLERY_SCREEN, "Otomatik maskeleme için resim kopyalanamadı", e)
-                        Toast.makeText(context, "Resim işlenemedi.", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
+        uri?.let {
+            fileForAutoMaskSelection = null // Önceki seçimi temizle
+            showModelSelectionDialog = true // Önce model seçimi dialogunu göster
         }
     }
-
 
     fun deleteFiles(filesToDelete: List<File>) {
         if (filesToDelete.isEmpty()) return
         selectedFilesForBatchOperation.clear()
         selectedFilesForBatchOperation.addAll(filesToDelete)
         showDeleteConfirmationDialog = true
-        // Menü zaten GalleryItem'da kapatılacak, burada tekrar kapatmaya gerek yok.
     }
 
     fun confirmDeleteSelectedFiles() {
@@ -294,8 +207,6 @@ fun GalleryScreen(navController: NavHostController) {
             selectedFilesForBatchOperation.forEach { file ->
                 if (file.exists() && file.delete()) {
                     deletedCount++
-                } else {
-                    Log.w(TAG_GALLERY_SCREEN, "Dosya silinemedi: ${file.absolutePath}")
                 }
             }
             withContext(Dispatchers.Main) {
@@ -303,30 +214,24 @@ fun GalleryScreen(navController: NavHostController) {
                 if (deletedCount > 0) {
                     Toast.makeText(context, "$deletedCount fotoğraf silindi", Toast.LENGTH_SHORT).show()
                     loadAndSortFiles()
-                } else {
-                    Toast.makeText(context, "Fotoğraflar silinemedi", Toast.LENGTH_SHORT).show()
                 }
                 selectedFilesForBatchOperation.clear()
-                isSelectionMode = false // Seçim modunu kapat
+                isSelectionMode = false
             }
         }
     }
 
     fun shareFiles(filesToShare: List<File>) {
         if (filesToShare.isEmpty()) return
-        // Menü zaten GalleryItem'da kapatılacak
         val uris = filesToShare.mapNotNull { file ->
             try {
                 FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
             } catch (e: Exception) {
-                Log.e(TAG_GALLERY_SCREEN, "Paylaşım için URI oluşturulamadı: ${file.name}", e)
                 null
             }
         }
-        if (uris.isEmpty()) {
-            Toast.makeText(context, "Paylaşılacak dosya bulunamadı.", Toast.LENGTH_SHORT).show()
-            return
-        }
+        if (uris.isEmpty()) return
+
         val intent = Intent().apply {
             action = if (uris.size == 1) Intent.ACTION_SEND else Intent.ACTION_SEND_MULTIPLE
             if (uris.size == 1) {
@@ -344,15 +249,16 @@ fun GalleryScreen(navController: NavHostController) {
         }
     }
 
-    fun navigateToAutoMaskPreviewScreen(fileToMask: File, selectedObjectKey: String) {
-        // Menü zaten GalleryItem'da veya ObjectSelectionDialog'da kapatılacak
+    fun navigateToAutoMaskPreviewScreen(fileToMask: File, objectKey: String, modelPath: String) {
         try {
             val fileUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", fileToMask)
             val encodedUri = Uri.encode(fileUri.toString())
-            val encodedObjectKey = Uri.encode(selectedObjectKey)
+            val encodedObjectKey = Uri.encode(objectKey)
+            val encodedModelPath = Uri.encode(modelPath) // Model yolunu da encode et
             val route = Screen.AutoMaskPreview.route
                 .replace("{${NavArgs.IMAGE_URI}}", encodedUri)
                 .replace("{${NavArgs.OBJECT_TO_MASK}}", encodedObjectKey)
+                .replace("{${NavArgs.MODEL_PATH}}", encodedModelPath) // Yeni argümanı ekle
             navController.navigate(route)
         } catch (e: Exception) {
             Log.e(TAG_GALLERY_SCREEN, "Otomatik maskeleme önizlemesi için URI oluşturma hatası", e)
@@ -367,7 +273,6 @@ fun GalleryScreen(navController: NavHostController) {
                 actions = {
                     if (isSelectionMode) {
                         IconButton(onClick = {
-                            // Tümünü seç / Tüm seçimi kaldır mantığı
                             if (selectedFilesForBatchOperation.size == imageFiles.size) {
                                 selectedFilesForBatchOperation.clear()
                             } else {
@@ -388,7 +293,7 @@ fun GalleryScreen(navController: NavHostController) {
                         }
                     } else {
                         IconButton(onClick = { pickImageForAutoMaskLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
-                            Icon(Icons.Filled.AutoAwesome, "AI ile Otomatik Maskele (Yeni Resim)") // AutoAwesomeSearch yerine AutoAwesome
+                            Icon(Icons.Filled.AutoAwesome, "AI ile Otomatik Maskele")
                         }
                         IconButton(onClick = { importImagesLauncher.launch("image/*") }) {
                             Icon(Icons.Filled.AddPhotoAlternate, "Cihazdan Fotoğraf Ekle")
@@ -410,9 +315,6 @@ fun GalleryScreen(navController: NavHostController) {
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
         },
@@ -423,7 +325,7 @@ fun GalleryScreen(navController: NavHostController) {
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
                 }) {
-                    Icon(Icons.Filled.Edit, "Galeriden Yeni Fotoğraf Düzenle (AI)")
+                    Icon(Icons.Filled.Edit, "Galeriden Yeni Fotoğraf Düzenle")
                 }
             }
         },
@@ -435,9 +337,7 @@ fun GalleryScreen(navController: NavHostController) {
                 .padding(paddingValues)
         ) {
             AndroidView(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 factory = { context ->
                     AdView(context).apply {
                         setAdSize(AdSize.BANNER)
@@ -473,26 +373,16 @@ fun GalleryScreen(navController: NavHostController) {
                                     if (isSelected) selectedFilesForBatchOperation.remove(file)
                                     else selectedFilesForBatchOperation.add(file)
                                 } else {
-                                    try {
-                                        val fileUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-                                        val encodedUri = Uri.encode(fileUri.toString())
-                                        // PhotoDetail yerine direkt PhotoPreview'a yönlendiriyoruz
-                                        val route = Screen.PhotoPreview.route.replace("{${NavArgs.IMAGE_URI}}", encodedUri)
-                                        navController.navigate(route)
-                                    } catch (e: Exception) {
-                                        Log.e(TAG_GALLERY_SCREEN, "Detay/Önizleme URI hatası", e)
-                                        Toast.makeText(context, "Fotoğraf açılamadı.", Toast.LENGTH_SHORT).show()
-                                    }
+                                    val fileUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+                                    val encodedUri = Uri.encode(fileUri.toString())
+                                    val route = Screen.PhotoPreview.route.replace("{${NavArgs.IMAGE_URI}}", encodedUri)
+                                    navController.navigate(route)
                                 }
                             },
                             onItemLongClick = {
                                 if (!isSelectionMode) {
                                     isSelectionMode = true
-                                    selectedFilesForBatchOperation.add(file) // Uzun basılanı direkt seç
-                                } else {
-                                    // Zaten seçim modundaysa uzun basış seçimi tersine çevirsin
-                                    if (isSelected) selectedFilesForBatchOperation.remove(file)
-                                    else selectedFilesForBatchOperation.add(file)
+                                    selectedFilesForBatchOperation.add(file)
                                 }
                             },
                             currentOpenFileForMenu = showMoreMenuForFile,
@@ -503,23 +393,18 @@ fun GalleryScreen(navController: NavHostController) {
                             onAutoMaskClick = { fileToMask ->
                                 showMoreMenuForFile = null
                                 fileForAutoMaskSelection = fileToMask
-                                showAutoMaskObjectSelectionDialog = true
+                                showModelSelectionDialog = true // Önce model seçimi
                             },
                             onEditAIClick = { fileToEdit ->
                                 showMoreMenuForFile = null
-                                try {
-                                    val fileUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", fileToEdit)
-                                    val encodedUri = Uri.encode(fileUri.toString())
-                                    val route = Screen.EditPhoto.route
-                                        .replace("{${NavArgs.IMAGE_URI}}", encodedUri)
-                                        .replace("{${NavArgs.INSTRUCTION}}", Uri.encode(""))
-                                        .replace("{${NavArgs.MASK}}", Uri.encode("null"))
-                                        .replace("{${NavArgs.EDIT_TYPE}}", EditTypeValues.NONE)
-                                    navController.navigate(route)
-                                } catch (e: Exception) {
-                                    Log.e(TAG_GALLERY_SCREEN, "Düzenleme için URI oluşturma hatası", e)
-                                    Toast.makeText(context, "Fotoğraf düzenlenemedi.", Toast.LENGTH_SHORT).show()
-                                }
+                                val fileUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", fileToEdit)
+                                val encodedUri = Uri.encode(fileUri.toString())
+                                val route = Screen.EditPhoto.route
+                                    .replace("{${NavArgs.IMAGE_URI}}", encodedUri)
+                                    .replace("{${NavArgs.INSTRUCTION}}", "")
+                                    .replace("{${NavArgs.MASK}}", "null")
+                                    .replace("{${NavArgs.EDIT_TYPE}}", EditTypeValues.NONE)
+                                navController.navigate(route)
                             },
                             onShareClick = { fileToShare ->
                                 showMoreMenuForFile = null
@@ -549,63 +434,83 @@ fun GalleryScreen(navController: NavHostController) {
 
         if (showDeleteConfirmationDialog) {
             AlertDialog(
-                onDismissRequest = {
-                    showDeleteConfirmationDialog = false
-                    // İptal edilirse seçimi temizleme, kullanıcı devam etmek isteyebilir.
-                },
+                onDismissRequest = { showDeleteConfirmationDialog = false },
                 title = { Text("Fotoğrafları Sil") },
                 text = { Text("${selectedFilesForBatchOperation.size} fotoğraf kalıcı olarak silinsin mi?") },
                 confirmButton = {
-                    TextButton(onClick = { confirmDeleteSelectedFiles() }) {
-                        Text("Sil", color = MaterialTheme.colorScheme.error)
-                    }
+                    TextButton(onClick = { confirmDeleteSelectedFiles() }) { Text("Sil") }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteConfirmationDialog = false }) { Text("İptal") }
                 }
             )
         }
-// --- DOSYANIN 1. PARÇASININ SONU ---
-// --- DOSYANIN 2. PARÇASININ BAŞLANGICI ---
 
-        if (showAutoMaskObjectSelectionDialog) {
+        if (showModelSelectionDialog) {
+            ModelSelectionDialog(
+                onDismiss = {
+                    showModelSelectionDialog = false
+                    fileForAutoMaskSelection = null
+                },
+                onModelSelected = { modelPath ->
+                    selectedModelPath = modelPath
+                    showModelSelectionDialog = false
+                    showAutoMaskObjectSelectionDialog = true // Şimdi nesne seçimini göster
+                }
+            )
+        }
+
+        if (showAutoMaskObjectSelectionDialog && fileForAutoMaskSelection != null) {
             ObjectSelectionDialog(
                 maskableObjects = MASKABLE_OBJECTS_GALLERY,
                 onDismiss = {
                     showAutoMaskObjectSelectionDialog = false
-                    // Eğer resim pickImageForAutoMaskLauncher ile seçildiyse ve iptal edilirse, geçici dosyayı sil
-                    if (fileForAutoMaskSelection?.path?.contains("automask_temp_") == true) {
-                        fileForAutoMaskSelection?.delete()
-                        Log.d(TAG_GALLERY_SCREEN, "Geçici automask dosyası silindi: ${fileForAutoMaskSelection?.name}")
-                    }
-                    fileForAutoMaskSelection = null // State'i sıfırla
+                    fileForAutoMaskSelection = null
                 },
                 onObjectSelected = { selectedObjectKey ->
                     showAutoMaskObjectSelectionDialog = false
-                    fileForAutoMaskSelection?.let { fileToMask ->
-                        navigateToAutoMaskPreviewScreen(fileToMask, selectedObjectKey)
-                        // fileForAutoMaskSelection state'ini burada null yapmıyoruz.
-                        // AutoMaskPreviewScreen'e geçici dosyanın sorumluluğu devrediliyor.
-                        // Eğer galeriden bir dosya değilse (yani automask_temp ise),
-                        // AutoMaskPreviewScreen tamamlandığında veya iptal edildiğinde bu dosyayı silmeli.
-                        // Şimdilik, GalleryScreen'de bu state'i açık bırakıyoruz,
-                        // böylece AutoMaskPreview'dan geri dönüldüğünde gerekirse tekrar kullanılabilir
-                        // ya da AutoMaskPreview ekranı silme işlemini üstlenir.
-                        // Ancak, karışıklığı önlemek için, eğer bir sonraki adımda kullanılmayacaksa null yapmak daha güvenli olabilir.
-                        // Şimdilik, sadece galeriden olmayan geçici dosyalar için null yapalım,
-                        // çünkü AutoMaskPreviewScreen kendi kopyasını oluşturabilir veya direkt kullanabilir.
-                        // Eğer pickImageForAutoMaskLauncher ile gelen geçici dosya ise, AutoMaskPreviewScreen silebilir.
-                        // fileForAutoMaskSelection = null; // Bu satırı şimdilik yoruma alıyoruz.
-                    } ?: run {
-                        Toast.makeText(context, "Maskelenecek dosya bulunamadı.", Toast.LENGTH_SHORT).show()
-                        Log.e(TAG_GALLERY_SCREEN, "ObjectSelectionDialog: fileForAutoMaskSelection is null onObjectSelected")
+                    fileForAutoMaskSelection?.let {
+                        navigateToAutoMaskPreviewScreen(it, selectedObjectKey, selectedModelPath)
                     }
                 }
             )
         }
-    } // Scaffold sonu
+    }
 }
-
+//... (GalleryItem, SortOrderDialog, ObjectSelectionDialog Composable'ları burada yer alıyor.
+// Değişiklik olmadığı için tekrar eklenmemiştir.)
+@Composable
+fun ModelSelectionDialog(
+    onDismiss: () -> Unit,
+    onModelSelected: (modelPath: String) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Maskeleme Yöntemini Seçin") },
+        text = {
+            Column(Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = { onModelSelected(TFLITE_MODEL_PRECISE) },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                ) {
+                    Text("Hassas (Daha Yavaş)")
+                }
+                Button(
+                    onClick = { onModelSelected(TFLITE_MODEL_FAST) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Hızlı (Daha Az Detaylı)")
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("İptal")
+            }
+        }
+    )
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GalleryItem(
@@ -907,5 +812,3 @@ fun ObjectSelectionDialog(
         }
     )
 }
-// --- DOSYANIN 2. PARÇASININ SONU ---
-

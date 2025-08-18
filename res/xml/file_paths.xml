@@ -1,11 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
 
-<paths>
-<external-files-path name="captured_images" path="captured_images/" />
-<external-files-path name="my_images" path="Pictures/AIGarage/" />
-<external-cache-path name="my_cached_images" path="." />
-<files-path name="captured_images" path="captured_images/" />
-<external-files-path name="my_camera_images" path="camera/" />
-<external-files-path name="ai_garage_images" path="Pictures/AI_Garage_Images/" />
-<cache-path name="cached_images" path="." />
+    <!--
+        Uygulamanın harici özel dizinindeki "AIGarage" klasörünü paylaşmak için.
+        Bu, AI ile işlenmiş ve Keşfet ekranında gösterilen resimlerin yoludur.
+        Yol: context.getExternalFilesDir("AIGarage")
+    -->
+    <external-files-path
+        name="processed_images"
+        path="AIGarage/" />
+
+    <!--
+        Uygulamanın harici özel Pictures klasörünü paylaşmak için.
+        Bu, CameraX tarafından çekilen fotoğrafların kaydedilebileceği bir yerdir.
+        Yol: context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+    -->
+    <external-files-path
+        name="my_pictures"
+        path="Pictures/" />
+
+    <!--
+        Paylaşım gibi işlemler için kullanılan geçici önbellek (cache) dosyalarını paylaşmak için.
+        Bu, galeriden seçilen resimlerin geçici olarak saklandığı yerdir.
+        Yol: context.getCacheDir()
+    -->
+    <cache-path
+        name="shared_images"
+        path="." />
+
 </paths>
