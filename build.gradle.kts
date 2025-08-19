@@ -16,6 +16,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
     }
     signingConfigs {
         create("release") {
@@ -50,14 +53,25 @@ android {
         compose = true
         mlModelBinding = true
     }
-    packagingOptions {
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1"
+    }
+
+    packaging {
         resources {
             pickFirsts += "META-INF/DEPENDENCIES"
             excludes += "/META-INF/LICENSE.md"
             excludes += "/META-INF/NOTICE.md"
             excludes += "META-INF/INDEX.LIST"
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+
         }
     }
+    // TensorFlow Lite modellerinin sıkıştırılmasını önlemek için
+    aaptOptions {
+        noCompress += "tflite"
+    }
+
 }
 
 dependencies {
