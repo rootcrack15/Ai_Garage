@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI Garage</string>
+    
+    <!-- Navigation and Main Screens -->
+    <string name="home_screen">Home</string>
+    <string name="camera_screen">Camera</string>
+    <string name="gallery_screen">Gallery</string>
+    <string name="settings_screen">Settings</string>
+    
+    <!-- Gallery Screen -->
+    <string name="device_gallery">Device Gallery</string>
+    <string name="gallery_permission_required">Gallery Permission Required</string>
+    <string name="gallery_permission_description">You need to grant permission to access your device gallery</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="no_images_in_gallery">No images in device gallery</string>
+    <string name="no_images_found">No images found on your device</string>
+    <string name="select_image">Select Image</string>
+    <string name="tap_image_for_preview">Tap an image for preview</string>
+    <string name="images_count">%1$d images</string>
+    <string name="all_folders">All Folders</string>
+    <string name="folder_select">Select Folder</string>
+    <string name="folder_select_description">Which folder should images be shown from?</string>
+    <string name="camera_folder">Camera</string>
+    <string name="screenshots_folder">Screenshots</string>
+    <string name="downloads_folder">Downloads</string>
+    <string name="pictures_folder">Pictures</string>
+    <string name="dcim_folder">DCIM</string>
+    <string name="select">Select</string>
+    <string name="cancel">Cancel</string>
+    
+    <!-- AI Processing -->
+    <string name="ai_button">AI</string>
+    <string name="ai_masking_mode">AI Masking Mode</string>
+    <string name="ai_masking_description">Select masking quality and speed</string>
+    <string name="fast_masking">Fast Masking</string>
+    <string name="fast_masking_description">Faster processing, medium quality</string>
+    <string name="high_quality">High Quality</string>
+    <string name="high_quality_description">Slower processing, high quality</string>
+    <string name="continue_button">Continue</string>
+    
+    <!-- Object Selection -->
+    <string name="select_objects_to_mask">Select Objects to Mask</string>
+    <string name="objects_selected">%1$d objects selected</string>
+    <string name="select_all">Select All</string>
+    <string name="clear_all">Clear All</string>
+    <string name="clear">Clear</string>
+    <string name="mask">Mask</string>
+    
+    <!-- Object Names -->
+    <string name="person">Person</string>
+    <string name="bicycle">Bicycle</string>
+    <string name="car">Car</string>
+    <string name="motorcycle">Motorcycle</string>
+    <string name="airplane">Airplane</string>
+    <string name="bus">Bus</string>
+    <string name="train">Train</string>
+    <string name="truck">Truck</string>
+    <string name="boat">Boat</string>
+    <string name="traffic_light">Traffic Light</string>
+    <string name="fire_hydrant">Fire Hydrant</string>
+    <string name="stop_sign">Stop Sign</string>
+    <string name="parking_meter">Parking Meter</string>
+    <string name="bench">Bench</string>
+    <string name="bird">Bird</string>
+    <string name="cat">Cat</string>
+    <string name="dog">Dog</string>
+    <string name="horse">Horse</string>
+    <string name="sheep">Sheep</string>
+    <string name="cow">Cow</string>
+    <string name="elephant">Elephant</string>
+    <string name="bear">Bear</string>
+    <string name="zebra">Zebra</string>
+    <string name="giraffe">Giraffe</string>
+    <string name="backpack">Backpack</string>
+    <string name="umbrella">Umbrella</string>
+    <string name="handbag">Handbag</string>
+    <string name="tie">Tie</string>
+    <string name="suitcase">Suitcase</string>
+    <string name="frisbee">Frisbee</string>
+    <string name="skis">Skis</string>
+    <string name="snowboard">Snowboard</string>
+    <string name="sports_ball">Sports Ball</string>
+    <string name="kite">Kite</string>
+    <string name="baseball_bat">Baseball Bat</string>
+    <string name="baseball_glove">Baseball Glove</string>
+    <string name="skateboard">Skateboard</string>
+    <string name="surfboard">Surfboard</string>
+    <string name="tennis_racket">Tennis Racket</string>
+    <string name="bottle">Bottle</string>
+    <string name="wine_glass">Wine Glass</string>
+    <string name="cup">Cup</string>
+    <string name="fork">Fork</string>
+    <string name="knife">Knife</string>
+    <string name="spoon">Spoon</string>
+    <string name="bowl">Bowl</string>
+    <string name="banana">Banana</string>
+    <string name="apple">Apple</string>
+    <string name="sandwich">Sandwich</string>
+    <string name="orange">Orange</string>
+    <string name="broccoli">Broccoli</string>
+    <string name="carrot">Carrot</string>
+    <string name="hot_dog">Hot Dog</string>
+    <string name="pizza">Pizza</string>
+    <string name="donut">Donut</string>
+    <string name="cake">Cake</string>
+    <string name="chair">Chair</string>
+    <string name="couch">Couch</string>
+    <string name="potted_plant">Potted Plant</string>
+    <string name="bed">Bed</string>
+    <string name="dining_table">Dining Table</string>
+    <string name="toilet">Toilet</string>
+    <string name="tv">TV</string>
+    <string name="laptop">Laptop</string>
+    <string name="mouse">Mouse</string>
+    <string name="remote">Remote</string>
+    <string name="keyboard">Keyboard</string>
+    <string name="cell_phone">Cell Phone</string>
+    <string name="microwave">Microwave</string>
+    <string name="oven">Oven</string>
+    <string name="toaster">Toaster</string>
+    <string name="sink">Sink</string>
+    <string name="refrigerator">Refrigerator</string>
+    <string name="book">Book</string>
+    <string name="clock">Clock</string>
+    <string name="vase">Vase</string>
+    <string name="scissors">Scissors</string>
+    <string name="teddy_bear">Teddy Bear</string>
+    <string name="hair_drier">Hair Dryer</string>
+    <string name="toothbrush">Toothbrush</string>
+    
+    <!-- Additional object names for custom list -->
+    <string name="phone">Phone</string>
+    <string name="table">Table</string>
+    <string name="bag">Bag</string>
+    <string name="hat">Hat</string>
+    <string name="shoe">Shoe</string>
+    <string name="plant">Plant</string>
+    <string name="flower">Flower</string>
+    <string name="tree">Tree</string>
+    <string name="building">Building</string>
+    <string name="window">Window</string>
+    <string name="door">Door</string>
+    <string name="road">Road</string>
+    <string name="sidewalk">Sidewalk</string>
+    <string name="wall">Wall</string>
+    <string name="terrain">Terrain</string>
+    <string name="sky">Sky</string>
+    
+    <!-- Settings Screen -->
+    <string name="language_settings">Language</string>
+    <string name="language_turkish">Türkçe</string>
+    <string name="language_english">English</string>
+    <string name="theme_settings">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System</string>
+    
+    <!-- Common Actions -->
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="edit">Edit</string>
+    <string name="share">Share</string>
+    <string name="loading">Loading...</string>
+    <string name="error">Error</string>
+    <string name="success">Success</string>
+    <string name="processing">Processing...</string>
+    <string name="back">Back</string>
+    <string name="gallery">Gallery</string>
+    <string name="retry">Retry</string>
+    <string name="confirm">Confirm</string>
+    <string name="fullscreen">Fullscreen</string>
+    <string name="download">Download</string>
+    <string name="downloading">Downloading...</string>
+    <string name="retake">Retake</string>
+    <string name="select_objects">Select Objects</string>
+    <string name="process_image">Process Image</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="captured_image">Captured Image</string>
+    <string name="selected_objects">Selected Objects</string>
+    <string name="preview_image">Preview Image</string>
+    <string name="file_information">File Information</string>
+    <string name="created_date">Created Date</string>
+    <string name="file_size">File Size</string>
+    <string name="file_path">File Path</string>
+    <string name="save_to_gallery_confirmation">Are you sure you want to save this image to gallery?</string>
+    <string name="share_image_confirmation">Are you sure you want to share this image?</string>
+    <string name="fullscreen_image">Fullscreen Image</string>
+    
+    <!-- Error Messages -->
+    <string name="navigation_error">Navigation error</string>
+    <string name="processing_error">Error occurred during processing: %1$s</string>
+    <string name="permission_denied">Permission denied</string>
+    <string name="file_not_found">File not found</string>
+    <string name="camera_permission_denied">Camera permission denied</string>
+    <string name="camera_permission_explanation">Camera permission is required to take photos</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="select_at_least_one_object">Select at least one object</string>
+    <string name="mask_generation_failed">Mask generation failed</string>
+    <string name="segmentation_failed">Segmentation failed</string>
+    <string name="no_valid_objects_selected">No valid objects selected</string>
+    <string name="ai_processing_failed">AI processing failed</string>
+    
+    <!-- Auto Mask Preview Screen -->
+    <string name="auto_mask_preview">Auto Mask Preview</string>
+    <string name="object_mask">Object Mask</string>
+    <string name="background_mask">Background Mask</string>
+    <string name="edit_without_mask">Edit Without Mask</string>
+    <string name="processing_mask">Processing mask...</string>
+    <string name="mask_processing_complete">Mask processing complete</string>
+    
+    <!-- Edit Photo Screen -->
+    <string name="edit_photo">Edit Photo</string>
+    <string name="original_image">Original Image</string>
+    <string name="selected_mask">Selected Mask</string>
+    <string name="processed_image">Processed Image</string>
+    <string name="enter_prompt">Enter your prompt...</string>
+    <string name="start_processing">Start Processing</string>
+    <string name="processing_with_ai">Processing with AI...</string>
+    <string name="edit_instruction_title">Edit Instruction</string>
+    <string name="what_do_you_want">What do you want to do?</string>
+    <string name="image_loading">Loading image...</string>
+    <string name="image_not_loaded">Please wait for the image to load.</string>
+    <string name="enter_instruction">Please enter an edit instruction.</string>
+    <string name="mask_info_title">Mask Usage Information</string>
+    <string name="mask_info_foreground">Mask: Changes will be made only on the selected object (foreground).</string>
+    <string name="mask_info_background">Mask: Changes will be made only on the unselected area (background).</string>
+    <string name="mask_info_general">Mask: Changes will be made on a specific part of the image.</string>
+    <string name="understood">Understood</string>
+    <string name="fullscreen_view">Fullscreen view</string>
+    <string name="no_image">No image</string>
+    <string name="not_processed_yet">Not processed yet</string>
+    <string name="close">Close</string>
+    <string name="edit_foreground_title">Edit Object (%1$s)</string>
+    <string name="edit_background_title">Edit Background (%1$s)</string>
+    <string name="edit_general_title">Edit and Describe</string>
+    <string name="foreground_default">Foreground</string>
+    <string name="background_default">Background</string>
+    <string name="prompt_placeholder_foreground">Ex: Transform into a bright red sports car</string>
+    <string name="prompt_placeholder_background">Ex: Add snowy mountains and sunset to background</string>
+    <string name="prompt_placeholder_general">What do you want to do? (Ex: Make it look like a cartoon character)</string>
+    <string name="select_language">Select your language</string>
+    
+    <!-- Photo Preview Screen -->
+    <string name="photo_preview">Photo Preview</string>
+    <string name="image_processed">Image processed successfully</string>
+    <string name="share_image">Share Image</string>
+    <string name="save_to_gallery">Save to Gallery</string>
+    <string name="image_saved_to_gallery">Photo saved to gallery (Pictures/AIGarageSaved)!</string>
+    <string name="image_save_failed">Photo could not be saved to gallery.</string>
+    <string name="image_deleted">Photo deleted</string>
+    <string name="image_delete_failed">Photo could not be deleted</string>
+    <string name="delete_permission_denied">No delete permission: %1$s</string>
+    <string name="temp_file_creation_failed">Could not create temporary file for sharing.</string>
+    <string name="no_image_source_found">No image source found for sharing.</string>
+    <string name="share_failed">Sharing failed: %1$s</string>
+    <string name="image_share_text">Created with AI Garage 🚗✨</string>
+    <string name="share_image_title">Share Image</string>
+    <string name="saving">Saving...</string>
+    <string name="image_cannot_be_displayed">No photo to display or could not be loaded.</string>
+    <string name="unknown">Unknown</string>
+    <string name="failed_to_load">Failed to load</string>
+    <string name="no_data">No Data</string>
+    
+    <!-- Camera Screen -->
+    <string name="switch_camera">Switch Camera</string>
+    <string name="flash_on">Flash On</string>
+    <string name="flash_off">Flash Off</string>
+    <string name="flash_auto">Flash Auto</string>
+    <string name="camera_permission_required">Camera permission required</string>
+    <string name="camera_permission_description">Camera permission is required to take photos</string>
+    <string name="select_object_to_mask">Select an object to mask.</string>
+    <string name="select_object">Select Object</string>
+    <string name="change_masking_object">Change Object to Mask</string>
+    <string name="object_selection_cancelled">Object selection for masking was cancelled.</string>
+    <string name="camera_not_ready">Camera not ready or no object selected.</string>
+    <string name="file_creation_failed">Could not create file.</string>
+    <string name="photo_not_saved">Photo could not be saved.</string>
+    <string name="photo_not_taken">Photo could not be taken: %1$s</string>
+    <string name="camera_start_failed">Camera could not be started: %1$s</string>
+    <string name="permission_required">Permission Required</string>
+    <string name="permission_required_description">This app needs camera and storage permissions to work properly. Please grant the permissions.</string>
+    <string name="grant_permission_button">Grant Permission</string>
+    <string name="deny_permission">Deny</string>
+    <string name="permission_denied_title">Permission Denied</string>
+    <string name="permission_denied_description">You have permanently denied camera permission. Please enable permissions from app settings to use the app.</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="permanently_denied">Permissions permanently denied.</string>
+    <string name="permanently_denied_description">Please manually enable permissions from app settings.</string>
+    <string name="camera_storage_permission_required">Camera and storage permission required.</string>
+    <string name="camera_storage_permission_description">Please grant permissions to use the app.</string>
+    <string name="select_masking_object">Select Object to Mask</string>
+    
+    <!-- Home Screen -->
+    <string name="welcome_message">Welcome to AI Garage</string>
+    <string name="recent_photos">Recent Photos</string>
+    <string name="no_photos_yet">No photos yet</string>
+    <string name="start_editing">Start editing your photos</string>
+    <string name="ai_garage_title">AI Garage</string>
+    <string name="discover_loading">Discover loading...</string>
+    <string name="no_ai_processed_images">No AI processed\nimages yet</string>
+    <string name="start_with_camera">Tap the camera icon to start!</string>
+    <string name="create_first_image">Create Your First Image</string>
+    <string name="edit_mode_active">Edit Mode Active</string>
+    <string name="delete_image">Delete Image</string>
+    <string name="delete_image_confirmation">Are you sure you want to permanently delete this image?\n\nThis action cannot be undone.</string>
+    <string name="image_deleted_success">Image deleted</string>
+    <string name="image_delete_error">Image could not be deleted</string>
+    <string name="likes">Likes</string>
+    <string name="views">Views</string>
+    <string name="liked">Liked</string>
+    <string name="like">Like</string>
+    <string name="saved_to_gallery">Saved to gallery!</string>
+    <string name="save_failed">Save failed</string>
+    <string name="share_failed_short">Share failed</string>
+    <string name="ai_result">AI Result: %1$s</string>
+    <string name="detailed_image">Detailed Image</string>
+    <string name="image_not_loaded_error">Image could not be loaded</string>
+    
+    <!-- Multi-select Mode -->
+    <string name="multi_select_mode">Multi-select Mode</string>
+    <string name="items_selected">%1$d items selected</string>
+    <string name="select_items">Select items</string>
+    <string name="delete_selected">Delete Selected</string>
+    <string name="delete_confirmation">Delete %1$d items?</string>
+    <string name="delete_confirmation_description">This action cannot be undone</string>
+    <string name="confirm_delete">Delete</string>
+    
+    <!-- Additional strings for GalleryScreen -->
+    <string name="select_folder">Select Folder</string>
+    <string name="select_folder_description">Which folder should images be shown from?</string>
+    <string name="select_masking_quality">Select masking quality and speed</string>
+</resources>

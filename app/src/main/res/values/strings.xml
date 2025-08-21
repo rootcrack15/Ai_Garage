@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI Garage</string>
+    
+    <!-- Navigation and Main Screens -->
+    <string name="home_screen">Ana Sayfa</string>
+    <string name="camera_screen">Kamera</string>
+    <string name="gallery_screen">Galeri</string>
+    <string name="settings_screen">Ayarlar</string>
+    
+    <!-- Gallery Screen -->
+    <string name="device_gallery">Cihaz Galerisi</string>
+    <string name="gallery_permission_required">Galeri İzni Gerekli</string>
+    <string name="gallery_permission_description">Cihaz galerinize erişim için izin vermeniz gerekiyor</string>
+    <string name="grant_permission">İzin Ver</string>
+    <string name="no_images_in_gallery">Cihaz galerisinde resim yok</string>
+    <string name="no_images_found">Cihazınızda resim bulunamadı</string>
+    <string name="select_image">Resim Seçin</string>
+    <string name="tap_image_for_preview">Önizleme için bir resme dokunun</string>
+    <string name="images_count">%1$d resim</string>
+    <string name="all_folders">Tüm Klasörler</string>
+    <string name="folder_select">Klasör Seçin</string>
+    <string name="folder_select_description">Hangi klasörden resimler gösterilsin?</string>
+    <string name="camera_folder">Kamera</string>
+    <string name="screenshots_folder">Ekran Görüntüleri</string>
+    <string name="downloads_folder">İndirilenler</string>
+    <string name="pictures_folder">Resimler</string>
+    <string name="dcim_folder">DCIM</string>
+    <string name="select">Seç</string>
+    <string name="cancel">İptal</string>
+    
+    <!-- AI Processing -->
+    <string name="ai_button">AI</string>
+    <string name="ai_masking_mode">AI Maskeleme Modu</string>
+    <string name="ai_masking_description">Maskeleme kalitesi ve hızını seçin</string>
+    <string name="fast_masking">Hızlı Maskeleme</string>
+    <string name="fast_masking_description">Daha hızlı işlem, orta kalite</string>
+    <string name="high_quality">Yüksek Kalite</string>
+    <string name="high_quality_description">Daha yavaş işlem, yüksek kalite</string>
+    <string name="continue_button">Devam Et</string>
+    
+    <!-- Object Selection -->
+    <string name="select_objects_to_mask">Maskelenecek Nesneleri Seçin</string>
+    <string name="objects_selected">%1$d nesne seçildi</string>
+    <string name="select_all">Tümü</string>
+    <string name="clear_all">Temizle</string>
+    <string name="clear">Temizle</string>
+    <string name="mask">Maskele</string>
+    
+    <!-- Object Names -->
+    <string name="person">İnsan</string>
+    <string name="bicycle">Bisiklet</string>
+    <string name="car">Araba</string>
+    <string name="motorcycle">Motosiklet</string>
+    <string name="airplane">Uçak</string>
+    <string name="bus">Otobüs</string>
+    <string name="train">Tren</string>
+    <string name="truck">Kamyon</string>
+    <string name="boat">Tekne</string>
+    <string name="traffic_light">Trafik Işığı</string>
+    <string name="fire_hydrant">Yangın Musluğu</string>
+    <string name="stop_sign">Dur İşareti</string>
+    <string name="parking_meter">Parkmetre</string>
+    <string name="bench">Bank</string>
+    <string name="bird">Kuş</string>
+    <string name="cat">Kedi</string>
+    <string name="dog">Köpek</string>
+    <string name="horse">At</string>
+    <string name="sheep">Koyun</string>
+    <string name="cow">İnek</string>
+    <string name="elephant">Fil</string>
+    <string name="bear">Ayı</string>
+    <string name="zebra">Zebra</string>
+    <string name="giraffe">Zürafa</string>
+    <string name="backpack">Sırt Çantası</string>
+    <string name="umbrella">Şemsiye</string>
+    <string name="handbag">El Çantası</string>
+    <string name="tie">Kravat</string>
+    <string name="suitcase">Bavul</string>
+    <string name="frisbee">Frizbi</string>
+    <string name="skis">Kayak</string>
+    <string name="snowboard">Snowboard</string>
+    <string name="sports_ball">Spor Topu</string>
+    <string name="kite">Uçurtma</string>
+    <string name="baseball_bat">Beyzbol Sopası</string>
+    <string name="baseball_glove">Beyzbol Eldiveni</string>
+    <string name="skateboard">Kaykay</string>
+    <string name="surfboard">Sörf Tahtası</string>
+    <string name="tennis_racket">Tenis Raketi</string>
+    <string name="bottle">Şişe</string>
+    <string name="wine_glass">Şarap Bardağı</string>
+    <string name="cup">Fincan</string>
+    <string name="fork">Çatal</string>
+    <string name="knife">Bıçak</string>
+    <string name="spoon">Kaşık</string>
+    <string name="bowl">Kase</string>
+    <string name="banana">Muz</string>
+    <string name="apple">Elma</string>
+    <string name="sandwich">Sandviç</string>
+    <string name="orange">Portakal</string>
+    <string name="broccoli">Brokoli</string>
+    <string name="carrot">Havuç</string>
+    <string name="hot_dog">Sosisli</string>
+    <string name="pizza">Pizza</string>
+    <string name="donut">Çörek</string>
+    <string name="cake">Pasta</string>
+    <string name="chair">Sandalye</string>
+    <string name="couch">Kanepe</string>
+    <string name="potted_plant">Saksı Bitkisi</string>
+    <string name="bed">Yatak</string>
+    <string name="dining_table">Yemek Masası</string>
+    <string name="toilet">Tuvalet</string>
+    <string name="tv">Televizyon</string>
+    <string name="laptop">Dizüstü Bilgisayar</string>
+    <string name="mouse">Fare</string>
+    <string name="remote">Uzaktan Kumanda</string>
+    <string name="keyboard">Klavye</string>
+    <string name="cell_phone">Cep Telefonu</string>
+    <string name="microwave">Mikrodalga</string>
+    <string name="oven">Fırın</string>
+    <string name="toaster">Tost Makinesi</string>
+    <string name="sink">Lavabo</string>
+    <string name="refrigerator">Buzdolabı</string>
+    <string name="book">Kitap</string>
+    <string name="clock">Saat</string>
+    <string name="vase">Vazo</string>
+    <string name="scissors">Makas</string>
+    <string name="teddy_bear">Oyuncak Ayı</string>
+    <string name="hair_drier">Saç Kurutma Makinesi</string>
+    <string name="toothbrush">Diş Fırçası</string>
+    
+    <!-- Additional object names for custom list -->
+    <string name="phone">Telefon</string>
+    <string name="table">Masa</string>
+    <string name="bag">Çanta</string>
+    <string name="hat">Şapka</string>
+    <string name="shoe">Ayakkabı</string>
+    <string name="plant">Bitki</string>
+    <string name="flower">Çiçek</string>
+    <string name="tree">Ağaç</string>
+    <string name="building">Bina</string>
+    <string name="window">Pencere</string>
+    <string name="door">Kapı</string>
+    <string name="road">Yol</string>
+    <string name="sidewalk">Kaldırım</string>
+    <string name="wall">Duvar</string>
+    <string name="terrain">Arazi</string>
+    <string name="sky">Gökyüzü</string>
+    
+    <!-- Settings Screen -->
+    <string name="language_settings">Dil</string>
+    <string name="language_turkish">Türkçe</string>
+    <string name="language_english">English</string>
+    <string name="theme_settings">Tema</string>
+    <string name="theme_light">Açık</string>
+    <string name="theme_dark">Koyu</string>
+    <string name="theme_system">Sistem</string>
+    
+    <!-- Common Actions -->
+    <string name="delete">Sil</string>
+    <string name="save">Kaydet</string>
+    <string name="edit">Düzenle</string>
+    <string name="share">Paylaş</string>
+    <string name="loading">Yükleniyor...</string>
+    <string name="error">Hata</string>
+    <string name="success">Başarılı</string>
+    <string name="processing">İşleniyor...</string>
+    <string name="back">Geri</string>
+    <string name="gallery">Galeri</string>
+    <string name="retry">Tekrar Dene</string>
+    <string name="confirm">Onayla</string>
+    <string name="fullscreen">Tam Ekran</string>
+    <string name="download">İndir</string>
+    <string name="downloading">İndiriliyor...</string>
+    <string name="retake">Yeniden Çek</string>
+    <string name="select_objects">Nesne Seç</string>
+    <string name="process_image">Resmi İşle</string>
+    <string name="take_photo">Fotoğraf Çek</string>
+    <string name="captured_image">Çekilen Resim</string>
+    <string name="selected_objects">Seçili Nesneler</string>
+    <string name="preview_image">Önizleme Resmi</string>
+    <string name="file_information">Dosya Bilgileri</string>
+    <string name="created_date">Oluşturulma Tarihi</string>
+    <string name="file_size">Dosya Boyutu</string>
+    <string name="file_path">Dosya Yolu</string>
+    <string name="save_to_gallery_confirmation">Bu resmi galeriye kaydetmek istediğinizden emin misiniz?</string>
+    <string name="share_image_confirmation">Bu resmi paylaşmak istediğinizden emin misiniz?</string>
+    <string name="fullscreen_image">Tam Ekran Resim</string>
+    
+    <!-- Error Messages -->
+    <string name="navigation_error">Yönlendirme hatası</string>
+    <string name="processing_error">İşlem sırasında hata oluştu: %1$s</string>
+    <string name="permission_denied">İzin reddedildi</string>
+    <string name="file_not_found">Dosya bulunamadı</string>
+    <string name="camera_permission_denied">Kamera izni reddedildi</string>
+    <string name="camera_permission_explanation">Fotoğraf çekmek için kamera izni gerekiyor</string>
+    <string name="error_occurred">Hata oluştu</string>
+    <string name="select_at_least_one_object">En az bir nesne seçin</string>
+    <string name="mask_generation_failed">Maske oluşturulamadı</string>
+    <string name="segmentation_failed">Segmentasyon başarısız</string>
+    <string name="no_valid_objects_selected">Geçerli nesne seçilmedi</string>
+    <string name="ai_processing_failed">AI işleme başarısız</string>
+    
+    <!-- Auto Mask Preview Screen -->
+    <string name="auto_mask_preview">Otomatik Maske Önizleme</string>
+    <string name="object_mask">Nesne Maskesi</string>
+    <string name="background_mask">Arka Plan Maskesi</string>
+    <string name="edit_without_mask">Maskesiz Düzenle</string>
+    <string name="processing_mask">Maske işleniyor...</string>
+    <string name="mask_processing_complete">Maske işlemi tamamlandı</string>
+    
+    <!-- Edit Photo Screen -->
+    <string name="edit_photo">Fotoğraf Düzenle</string>
+    <string name="original_image">Orijinal Resim</string>
+    <string name="selected_mask">Seçili Maske</string>
+    <string name="processed_image">İşlenmiş Resim</string>
+    <string name="enter_prompt">Prompt\'unuzu girin...</string>
+    <string name="start_processing">İşlemi Başlat</string>
+    <string name="processing_with_ai">AI ile işleniyor...</string>
+    <string name="edit_instruction_title">Düzenleme Talimatı</string>
+    <string name="what_do_you_want">Ne yapmak istersin?</string>
+    <string name="image_loading">Resim yükleniyor...</string>
+    <string name="image_not_loaded">Lütfen resmin yüklenmesini bekleyin.</string>
+    <string name="enter_instruction">Lütfen bir düzenleme talimatı girin.</string>
+    <string name="mask_info_title">Maske Kullanım Bilgisi</string>
+    <string name="mask_info_foreground">Maske: Sadece seçili nesne (ön plan) üzerinde değişiklik yapılacak.</string>
+    <string name="mask_info_background">Maske: Sadece seçili olmayan alan (arka plan) üzerinde değişiklik yapılacak.</string>
+    <string name="mask_info_general">Maske: Resmin belirli bir bölümü üzerinde değişiklik yapılacak.</string>
+    <string name="understood">Anladım</string>
+    <string name="fullscreen_view">Tam ekran görüntüle</string>
+    <string name="no_image">Resim yok</string>
+    <string name="not_processed_yet">Henüz işlenmemiş</string>
+    <string name="close">Kapat</string>
+    <string name="edit_foreground_title">Nesneyi Düzenle (%1$s)</string>
+    <string name="edit_background_title">Arka Planı Düzenle (%1$s)</string>
+    <string name="edit_general_title">Düzenle ve Tarif Et</string>
+    <string name="foreground_default">Ön Plan</string>
+    <string name="background_default">Arka Plan</string>
+    <string name="prompt_placeholder_foreground">Örn: Kırmızı parlak bir spor arabaya dönüştür</string>
+    <string name="prompt_placeholder_background">Örn: Arka plana karlı dağlar ve gün batımı ekle</string>
+    <string name="prompt_placeholder_general">Ne yapmak istersin? (Örn: Çizgi film karakterine benzet)</string>
+    <string name="select_language">Dilinizi seçin</string>
+    
+    <!-- Photo Preview Screen -->
+    <string name="photo_preview">Fotoğraf Önizleme</string>
+    <string name="image_processed">Resim başarıyla işlendi</string>
+    <string name="share_image">Resmi Paylaş</string>
+    <string name="save_to_gallery">Galeriye Kaydet</string>
+    <string name="image_saved_to_gallery">Fotoğraf galeriye (Pictures/AIGarageSaved) kaydedildi!</string>
+    <string name="image_save_failed">Fotoğraf galeriye kaydedilemedi.</string>
+    <string name="image_deleted">Fotoğraf silindi</string>
+    <string name="image_delete_failed">Fotoğraf silinemedi</string>
+    <string name="delete_permission_denied">Silme izni yok: %1$s</string>
+    <string name="temp_file_creation_failed">Paylaşım için geçici dosya oluşturulamadı.</string>
+    <string name="no_image_source_found">Paylaşılacak bir resim kaynağı bulunamadı.</string>
+    <string name="share_failed">Paylaşım başlatılamadı: %1$s</string>
+    <string name="image_share_text">AI Garage ile oluşturuldu 🚗✨</string>
+    <string name="share_image_title">Resmi Paylaş</string>
+    <string name="saving">Kaydediliyor...</string>
+    <string name="image_cannot_be_displayed">Görüntülenecek fotoğraf yok veya yüklenemedi.</string>
+    <string name="unknown">Bilinmiyor</string>
+    <string name="failed_to_load">Yüklenemedi</string>
+    <string name="no_data">Veri Yok</string>
+    
+    <!-- Camera Screen -->
+    <string name="switch_camera">Kamerayı Değiştir</string>
+    <string name="flash_on">Flaş Açık</string>
+    <string name="flash_off">Flaş Kapalı</string>
+    <string name="flash_auto">Flaş Otomatik</string>
+    <string name="camera_permission_required">Kamera izni gerekli</string>
+    <string name="camera_permission_description">Fotoğraf çekmek için kamera izni gerekiyor</string>
+    <string name="select_object_to_mask">Maskelemek için bir nesne seçin.</string>
+    <string name="select_object">Nesne Seç</string>
+    <string name="change_masking_object">Maskelenecek Nesneyi Değiştir</string>
+    <string name="object_selection_cancelled">Maskeleme için nesne seçimi iptal edildi.</string>
+    <string name="camera_not_ready">Kamera hazır değil veya nesne seçilmedi.</string>
+    <string name="file_creation_failed">Dosya oluşturulamadı.</string>
+    <string name="photo_not_saved">Fotoğraf kaydedilemedi.</string>
+    <string name="photo_not_taken">Fotoğraf çekilemedi: %1$s</string>
+    <string name="camera_start_failed">Kamera açılamadı: %1$s</string>
+    <string name="permission_required">İzin Gerekli</string>
+    <string name="permission_required_description">Bu uygulamanın düzgün çalışması için kamera ve gerekirse depolama iznine ihtiyacı var. Lütfen izinleri verin.</string>
+    <string name="grant_permission_button">İzin Ver</string>
+    <string name="deny_permission">Reddet</string>
+    <string name="permission_denied_title">İzin Reddedildi</string>
+    <string name="permission_denied_description">Kamera iznini kalıcı olarak reddettiniz. Uygulamayı kullanmak için lütfen uygulama ayarlarından izinleri etkinleştirin.</string>
+    <string name="open_settings">Ayarları Aç</string>
+    <string name="permanently_denied">İzinler kalıcı olarak reddedildi.</string>
+    <string name="permanently_denied_description">Lütfen uygulama ayarlarından izinleri manuel olarak etkinleştirin.</string>
+    <string name="camera_storage_permission_required">Kamera ve depolama izni gereklidir.</string>
+    <string name="camera_storage_permission_description">Lütfen uygulamayı kullanabilmek için izinleri verin.</string>
+    <string name="select_masking_object">Maskelenecek Nesneyi Seçin</string>
+    
+    <!-- Home Screen -->
+    <string name="welcome_message">AI Garage\'a Hoş Geldiniz</string>
+    <string name="recent_photos">Son Fotoğraflar</string>
+    <string name="no_photos_yet">Henüz fotoğraf yok</string>
+    <string name="start_editing">Fotoğraflarınızı düzenlemeye başlayın</string>
+    <string name="ai_garage_title">AI Garage</string>
+    <string name="discover_loading">Keşfet yükleniyor...</string>
+    <string name="no_ai_processed_images">Henüz AI ile işlenmiş\nbir resim yok</string>
+    <string name="start_with_camera">Kamera ikonuna dokunarak başlayın!</string>
+    <string name="create_first_image">İlk Resminizi Oluşturun</string>
+    <string name="edit_mode_active">Düzenleme Modu Aktif</string>
+    <string name="delete_image">Resmi Sil</string>
+    <string name="delete_image_confirmation">Bu resmi kalıcı olarak silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz.</string>
+    <string name="image_deleted_success">Resim silindi</string>
+    <string name="image_delete_error">Resim silinemedi</string>
+    <string name="likes">Beğeni</string>
+    <string name="views">Görüntülenme</string>
+    <string name="liked">Beğenildi</string>
+    <string name="like">Beğen</string>
+    <string name="saved_to_gallery">Galeriye kaydedildi!</string>
+    <string name="save_failed">Kaydetme başarısız</string>
+    <string name="share_failed_short">Paylaşma başarısız</string>
+    <string name="ai_result">AI Sonucu: %1$s</string>
+    <string name="detailed_image">Detaylı Resim</string>
+    <string name="image_not_loaded_error">Resim yüklenemedi</string>
+    
+    <!-- Multi-select Mode -->
+    <string name="multi_select_mode">Çoklu Seçim Modu</string>
+    <string name="items_selected">%1$d öğe seçildi</string>
+    <string name="select_items">Öğe seçin</string>
+    <string name="delete_selected">Seçilenleri Sil</string>
+    <string name="delete_confirmation">%1$d öğe silinsin mi?</string>
+    <string name="delete_confirmation_description">Bu işlem geri alınamaz</string>
+    <string name="confirm_delete">Sil</string>
+    
+    <!-- Additional strings for GalleryScreen -->
+    <string name="select_folder">Klasör Seçin</string>
+    <string name="select_folder_description">Hangi klasörden resimler gösterilsin?</string>
+    <string name="select_masking_quality">Maskeleme kalitesi ve hızını seçin</string>
+</resources>
